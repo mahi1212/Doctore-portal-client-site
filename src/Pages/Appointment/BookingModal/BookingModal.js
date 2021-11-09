@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
 import { Button } from '@mui/material';
+import useAuth from '../../../hooks/useAuth';
 
 const style = {
     position: 'absolute',
@@ -18,15 +19,45 @@ const style = {
     textAlign: 'center'
 };
 
-const BookingModal = ({ openBooking, handleBookingClose, booking , date}) => {
+const BookingModal = ({ openBooking, handleBookingClose, booking, date }) => {
     const { name, time } = booking
+    const { user } = useAuth()
+    const initialInfo = { patientName: user.displayName, email: user.email, phone: '' }
+    const [bookingInfo, setBookingInfo] = useState(initialInfo)
+
+    const handleOnBlur = e => {
+        const field = e.target.name
+        const value = e.target.value
+        const newInfo = { ...bookingInfo }
+        newInfo[field] = value
+        console.log(newInfo)
+        setBookingInfo(newInfo)
+    }
+
     const handleBookingSubmit = e => {
         alert('Submittig')
         // Collect data
-        // ADD to server
-        
+        const appointment = {
+            ...bookingInfo,
+            time,
+            serviceName: name,
+            date: date.toLocaleDateString()
+        }
+        // send to server
+        fetch('http://localhost:5000/appointments', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(appointment)
+        }).then(res => res.json())
+            .then(data => {
+                if (data.insertedId) {
 
-        handleBookingClose()
+                    handleBookingClose()
+                }
+                // console.log(data)
+            })
         e.preventDefault()
     }
     return (
@@ -37,7 +68,7 @@ const BookingModal = ({ openBooking, handleBookingClose, booking , date}) => {
             aria-describedby="modal-modal-description"
         >
             <Box sx={style}>
-                <Typography id="modal-modal-title" sx={{py: 2}} variant="h6" component="h2">
+                <Typography id="modal-modal-title" sx={{ py: 2 }} variant="h6" component="h2">
                     {name}
                 </Typography>
                 <form onSubmit={handleBookingSubmit}>
@@ -46,36 +77,42 @@ const BookingModal = ({ openBooking, handleBookingClose, booking , date}) => {
                         id="filled-hidden-label-small"
                         defaultValue={time}
                         disabled
-                        sx={{width: '90%', my:1}}
+                        sx={{ width: '90%', my: 1 }}
                         size="small"
                     />
                     <TextField
                         hiddenLabel
                         id="filled-hidden-label-small"
-                        defaultValue="YOUR NAME"
-                        sx={{width: '90%', my:1}}
+                        name="patientName"
+                        onBlur={handleOnBlur}
+                        defaultValue={user.displayName}
+                        sx={{ width: '90%', my: 1 }}
                         size="small"
                     />
                     <TextField
                         hiddenLabel
                         id="filled-hidden-label-small"
-                        defaultValue="YOUR EMAIL"
-                        sx={{width: '90%', my:1}}
+                        name="email"
+                        onBlur={handleOnBlur}
+                        defaultValue={user.email}
+                        sx={{ width: '90%', my: 1 }}
                         size="small"
                     />
                     <TextField
                         hiddenLabel
                         id="filled-hidden-label-small"
+                        name="phone"
+                        onBlur={handleOnBlur}
                         defaultValue="YOUR PHONE NUMBER"
-                        sx={{width: '90%', my:1}}
+                        sx={{ width: '90%', my: 1 }}
                         size="small"
                     />
                     <TextField
                         hiddenLabel
                         disabled
                         id="filled-hidden-label-small"
-                        defaultValue = {date.toDateString()}
-                        sx={{width: '90%', my:1}}
+                        defaultValue={date.toDateString()}
+                        sx={{ width: '90%', my: 1 }}
                         size="small"
                     />
                     <Button type="submit" variant="outlined">Submit</Button>

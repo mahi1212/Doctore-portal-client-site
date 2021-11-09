@@ -5,7 +5,7 @@ import useAuth from '../../../hooks/useAuth';
 import login from '../../../images/login.png'
 const Login = () => {
     const [loginData, setLoginData] = useState({})
-    const { user, loginUser, isLoading, authError } = useAuth()
+    const { user, loginUser, isLoading, authError, signInUsingGoogle} = useAuth()
 
     const location = useLocation()
     const history = useHistory()
@@ -19,11 +19,18 @@ const Login = () => {
         setLoginData(newLoginData)
     }
 
+    // Google signin
+    const handleGoogleSignin = (location, history) =>{
+        signInUsingGoogle(location, history)
+    }
+
+    // Form login
     const handleLoginSubmit = e => {
         loginUser(loginData.email, loginData.password, location, history)
 
         e.preventDefault();
     }
+
     return (
         <Container>
             <Grid container spacing={2}>
@@ -58,6 +65,9 @@ const Login = () => {
                         {user?.email && <Alert severity="success">User Logged in!</Alert>}
                         {authError && <Alert severity="error">{authError}</Alert>}
                     </form>
+                    <p>_____________ <sub>or</sub> ___________</p>
+                    <Button onClick={handleGoogleSignin} sx={{ width: '75%', mt: 4 }} variant="text">Google Signin</Button>
+
                 </Grid>
                 <Grid item xs={12} md={6}>
                     <img src={login} alt="login_image" style={{ width: "100%" }} />
